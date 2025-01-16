@@ -4,32 +4,29 @@ import Link from "next/link";
 import { getPayload } from "payload";
 import configPromise from "@payload-config";
 
-// Add build output config
-export const dynamic = "force-static";
-export const dynamicParams = false;
-
-async function getAllMedia(): Promise<Media[]> {
-  console.log("[Build] Fetching all media for home page");
-  const payload = await getPayload({ config: configPromise });
-
-  try {
-    const mediaResults = await payload.find({
-      collection: "media",
-      depth: 1,
-      sort: "-updatedAt",
-    });
-
-    console.log(`[Home Page] Fetched ${mediaResults.docs.length} items`);
-    return mediaResults.docs;
-  } catch (error) {
-    console.error("[Home Page] Error fetching media:", error);
-    return [];
-  }
-}
-
 export default async function Home() {
   const timestamp = new Date().toISOString();
   console.log(`[Home Page] Rendering page at ${timestamp}`);
+
+  async function getAllMedia(): Promise<Media[]> {
+    console.log("[Build] Fetching all media for home page");
+    const payload = await getPayload({ config: configPromise });
+
+    try {
+      const mediaResults = await payload.find({
+        collection: "media",
+        depth: 1,
+        sort: "-updatedAt",
+      });
+
+      console.log(`[Home Page] Fetched ${mediaResults.docs.length} items`);
+      return mediaResults.docs;
+    } catch (error) {
+      console.error("[Home Page] Error fetching media:", error);
+      return [];
+    }
+  }
+
   const images = await getAllMedia();
 
   return (
