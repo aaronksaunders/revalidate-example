@@ -82,6 +82,7 @@ export interface Media {
   id: number;
   alt: string;
   caption?: string | null;
+  slug?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -173,6 +174,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

@@ -5,8 +5,8 @@ import { getPayload } from "payload";
 import configPromise from "@payload-config";
 
 export default async function Home() {
-  const timestamp = new Date().toISOString();
-  console.log(`[Home Page] Rendering page at ${timestamp}`);
+  // const timestamp = new Date().toISOString();
+  console.log(`[Home Page] Rendering page at `);
 
   async function getAllMedia(): Promise<Media[]> {
     console.log("[Build] Fetching all media for home page");
@@ -35,7 +35,7 @@ export default async function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
         {images.map((image) => (
-          <Link href={`/media/${image.id}`} key={image.id}>
+          <Link href={`/media/${image.slug}`} key={image.slug}>
             <div key={image.id} className="flex flex-col items-center gap-2">
               <div className="relative w-full aspect-square">
                 <Image

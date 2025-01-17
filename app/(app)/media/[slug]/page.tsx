@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import configPromise from "@payload-config";
 import { getPayload } from "payload";
 import { Media } from "@/payload-types";
+import { cache } from "react";
 
 export async function generateStaticParams() {
   console.log("[Build] Starting generateStaticParams for media detail pages");
@@ -17,69 +18,46 @@ export async function generateStaticParams() {
       limit: 1000,
       overrideAccess: true,
       pagination: false,
+      select: {
+        slug: true,
+      },
     });
 
     console.log(
       `[Build] Found ${mediaResults.docs.length} media items to generate`
     );
 
-    const paths = mediaResults.docs
-      .filter((m) => typeof m.id === "number" && isFinite(m.id))
-      .map((m: Media) => ({
-        id: String(m.id),
-      }));
+    const params = mediaResults.docs.map(({ slug }) => {
+      return { slug };
+    });
 
-    console.log(`[Build] Generated ${paths.length} static paths`);
-    return paths;
+    console.log(`[Build] Generated ${params.length} static paths`);
+    return params;
   } catch (error) {
     console.error("[Build] Error generating static paths:", error);
     return [];
   }
 }
 
-type PageParams = {
+type Args = {
   params: Promise<{
-    id: string;
-  }>;
-};
+    slug?: string
+  }>
+}
 
-export default async function ImageDetail({ params }: PageParams) {
-  const id = (await params)?.id;
+export default async function ImageDetail({ params: paramsPromise }: Args) {
+  const { slug = '' } = await paramsPromise
 
-  const timestamp = new Date().toISOString();
-  console.log(`[Detail Page] Rendering page for ID: ${id} at ${timestamp}`);
+  // const timestamp = new Date().toISOString();
+  console.log(`[Detail Page] Rendering page for slug: ${slug} at`);
 
-  if (!id) {
+  if (!slug) {
+    console.log("[Detail Page] No slug provided");
     notFound();
   }
 
-  async function getMediaById(id: string): Promise<Media | null> {
-    const mediaId = parseInt(id, 10);
-    if (isNaN(mediaId)) {
-      return null;
-    }
 
-    console.log(`[Detail Page] Fetching media with ID: ${mediaId}`);
-    const payload = await getPayload({ config: configPromise });
-
-    try {
-      const media = await payload.findByID({
-        collection: "media",
-        id: mediaId,
-        depth: 1,
-      });
-
-      console.log(
-        `[Detail Page] Fetched media caption: ${media?.caption} at ${new Date().toISOString()}`
-      );
-      return media;
-    } catch (error) {
-      console.error(`[Detail Page] Error fetching media:`, error);
-      return null;
-    }
-  }
-
-  const image = await getMediaById(id);
+  const image = await queryMediaBySlug({slug});
   if (!image) {
     notFound();
   }
@@ -109,3 +87,22 @@ export default async function ImageDetail({ params }: PageParams) {
     </div>
   );
 }
+
+const queryMediaBySlug = cache(async ({ slug }: { slug: string }) => {
+
+  const payload = await getPayload({ config: configPromise })
+
+  const result = await payload.find({
+    collection: 'media',
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+  })
+
+  return result.docs?.[0] || null
+})

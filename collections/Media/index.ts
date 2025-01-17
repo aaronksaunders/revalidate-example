@@ -20,6 +20,10 @@ export const Media: CollectionConfig = {
       type: "text",
       required: false,
     },
+    {
+      name: "slug",
+      type: "text",
+    },
   ],
   upload: true,
   hooks: {
